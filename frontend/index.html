@@ -1,12 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>rent_manager</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>租房管理系统 - 登录</title>
+  <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-<div id="app"></div>
-<script src="./src/main.js" type="module"></script>
+  <div class="login-page">
+    <div class="login-box">
+      <h1>租房管理系统</h1>
+      <p class="subtitle">请使用管理员账号登录</p>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">用户名</label>
+          <input type="text" id="username" placeholder="请输入用户名" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+          <label for="password">密码</label>
+          <input type="password" id="password" placeholder="请输入密码" autocomplete="current-password" required />
+        </div>
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block">登录</button>
+        <p class="error-msg" id="errorMsg"></p>
+      </form>
+
+      <div class="default-credentials">
+        <span>默认账号：<code>john</code></span>
+        <span>默认密码：<code>123456</code></span>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/login.js"></script>
 </body>
 </html>

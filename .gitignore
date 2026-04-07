@@ -1,3 +1,8 @@
 build/bin
 node_modules
 frontend/dist
+rent_manager.exe
+rent_manager.db
+rent_manager.db-shm
+rent_manager.db-wal
+.claude/

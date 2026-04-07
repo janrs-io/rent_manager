@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>租房管理系统 - 总览</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">租房管理系统</div>
+      <ul class="sidebar-menu">
+        <li><a href="/dashboard.html" class="active"><span class="icon">▣</span> 总览</a></li>
+        <li><a href="/tenants.html"><span class="icon">👤</span> 租客管理</a></li>
+        <li><a href="/rent-records.html"><span class="icon">💰</span> 收租管理</a></li>
+      </ul>
+      <div class="sidebar-bottom">
+        <a onclick="logout()">退出登录</a>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <span class="topbar-title">总览</span>
+        <div class="user-menu" id="userMenu">
+          <div class="user-btn" onclick="toggleUserMenu()">
+            <div class="user-avatar" id="userAvatar"></div>
+            <span class="user-name" id="topbarUser"></span>
+            <span class="user-arrow">▼</span>
+          </div>
+          <div class="user-dropdown">
+            <div class="user-dropdown-item danger" onclick="logout()">&#x2192; 退出登录</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- 年份筛选 -->
+        <div class="search-bar" style="margin-bottom:20px">
+          <select id="filterYear"></select>
+          <button class="btn btn-default" onclick="loadDashboard()">查询</button>
+        </div>
+
+        <!-- 年度汇总卡片 -->
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="label">年度总收租</div>
+            <div class="value" id="totalRent">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">年度总电费</div>
+            <div class="value" id="totalElectricFee">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">年度总用电量</div>
+            <div class="value" id="totalElectricUsage">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">年度总水费</div>
+            <div class="value" id="totalWaterFee">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">年度总用水量</div>
+            <div class="value" id="totalWaterUsage">-</div>
+          </div>
+        </div>
+
+        <!-- 月度明细表格 -->
+        <div class="card">
+          <div class="card-title">月度明细</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>月份</th>
+                <th>收租(元)</th>
+                <th>用电量(度)</th>
+                <th>电费(元)</th>
+                <th>用水量(吨)</th>
+                <th>水费(元)</th>
+              </tr>
+            </thead>
+            <tbody id="monthlyBody"></tbody>
+            <tfoot id="monthlyFoot"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

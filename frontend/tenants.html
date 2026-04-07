@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>租房管理系统 - 租客管理</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">租房管理系统</div>
+      <ul class="sidebar-menu">
+        <li><a href="/dashboard.html"><span class="icon">▣</span> 概览</a></li>
+        <li><a href="/tenants.html" class="active"><span class="icon">👤</span> 租客管理</a></li>
+        <li><a href="/rent-records.html"><span class="icon">💰</span> 收租管理</a></li>
+      </ul>
+      <div class="sidebar-bottom">
+        <a onclick="logout()">退出登录</a>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <span class="topbar-title">租客管理</span>
+        <div class="user-menu" id="userMenu">
+          <div class="user-btn" onclick="toggleUserMenu()">
+            <div class="user-avatar" id="userAvatar"></div>
+            <span class="user-name" id="topbarUser"></span>
+            <span class="user-arrow">▼</span>
+          </div>
+          <div class="user-dropdown">
+            <div class="user-dropdown-item danger" onclick="logout()">&#x2192; 退出登录</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">租客列表</span>
+            <span class="card-date" id="todayDate"></span>
+            <button class="btn btn-primary btn-sm" onclick="openModal()">+ 新增租客</button>
+          </div>
+
+          <table class="table" id="tenantTable">
+            <thead>
+              <tr>
+                <th>房间号</th>
+                <th>姓名</th>
+                <th>性别</th>
+                <th>年龄</th>
+                <th>身份证号</th>
+                <th>电话</th>
+                <th>租金(元/月)</th>
+                <th>押金(元)</th>
+                <th>入住日期</th>
+                <th>最近收租日期</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tenantBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增/编辑弹窗 -->
+  <div class="modal-mask" id="modalMask">
+    <div class="modal">
+      <div class="modal-header">
+        <span id="modalTitle">新增租客</span>
+        <span class="modal-close" onclick="closeModal()">✕</span>
+      </div>
+      <div class="modal-body">
+        <form id="tenantForm">
+          <input type="hidden" id="tenantId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>姓名 <span class="required">*</span></label>
+              <input type="text" id="name" required />
+            </div>
+            <div class="form-group">
+              <label>性别 <span class="required">*</span></label>
+              <select id="gender">
+                <option value="male">男</option>
+                <option value="female">女</option>
+                <option value="unknown">未知</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>电话</label>
+              <input type="text" id="phone" />
+            </div>
+            <div class="form-group">
+              <label>身份证号</label>
+              <input type="text" id="id_card" maxlength="18" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>地址</label>
+            <input type="text" id="address" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>房间号 <span class="required">*</span></label>
+              <input type="text" id="room_no" required />
+            </div>
+            <div class="form-group">
+              <label>入住日期 <span class="required">*</span></label>
+              <input type="date" id="move_in_date" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>月租金(元) <span class="required">*</span></label>
+              <input type="number" id="rent_amount" min="0" step="0.01" required />
+            </div>
+            <div class="form-group">
+              <label>押金(元)</label>
+              <input type="number" id="deposit" min="0" step="0.01" value="0" />
+            </div>
+          </div>
+          <div class="form-group" id="statusGroup" style="display:none">
+            <label>状态</label>
+            <select id="status">
+              <option value="active">在租</option>
+              <option value="inactive">已退租</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitForm()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 租客明细弹窗 -->
+  <div class="modal-mask" id="tenantDetailMask">
+    <div class="modal" style="width:400px">
+      <div class="modal-header">
+        <span>租客明细</span>
+        <span class="modal-close" onclick="closeTenantDetail()">✕</span>
+      </div>
+      <div class="modal-body" id="tenantDetailContent"></div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeTenantDetail()">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/tenants.js"></script>
+</body>
+</html>
