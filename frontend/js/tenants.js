@@ -58,18 +58,10 @@ async function loadTenants() {
     // 状态：按租客分行显示
     const statuses = stack(tenants.map(t => `<span class="badge ${t.status === 'active' ? 'badge-green' : 'badge-gray'}">${statusMap[t.status]}</span>`));
 
-    // 收租按钮：仅在续租日期前5天内显示
-    const renewDate = first.last_renew_date ? first.last_renew_date.slice(0, 10) : null;
-    const showRentBtn = renewDate && (() => {
-      const diff = (new Date(renewDate) - new Date()) / 86400000;
-      return diff >= 0 && diff <= 5;
-    })();
-    const rentBtn = showRentBtn
-      ? `<button class="btn-action btn-action-success" onclick="location.href='/rent-records.html?room_no=${encodeURIComponent(roomNo)}'">收租</button>`
-      : '';
+    // 操作：按房间号和租客显示
+    const rentBtn = `<button class="btn-action btn-action-success" onclick="location.href='/rent-records.html?room_no=${encodeURIComponent(roomNo)}'">新增收租</button>`;
 
-    // 操作：按租客分行显示
-    const actions = (rentBtn ? rentBtn + '<div class="cell-divider"></div>' : '') + stack(tenants.map(t => `
+    const actions = rentBtn + '<div class="cell-divider"></div>' + stack(tenants.map(t => `
       <button class="btn-action btn-action-info" onclick='showDetail(${JSON.stringify(t).replace(/'/g, "&#39;")})'>明细</button>
       <button class="btn-action btn-action-primary" onclick="openModal(${JSON.stringify(t).replace(/"/g, '&quot;')})">编辑</button>
       <button class="btn-action btn-action-danger" onclick="deleteTenant(${t.id}, '${t.name}')">删除</button>
