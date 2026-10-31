@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler pages dev frontend --d1 DB=rent-manager-db",
+    "deploy": "wrangler pages deploy frontend --project-name rent-manager --branch main",
     "db:init:local": "wrangler d1 execute rent-manager-db --local --file=./schema.sql",
     "db:init:remote": "wrangler d1 execute rent-manager-db --remote --file=./schema.sql"
   },
