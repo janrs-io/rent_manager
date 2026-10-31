@@ -1,0 +1,32 @@
+{
+  "name": "rent_manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev frontend --d1 DB=rent-manager-db",
+    "db:init:local": "wrangler d1 execute rent-manager-db --local --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute rent-manager-db --remote --file=./schema.sql"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janrs-io/rent_manager.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/janrs-io/rent_manager/issues"
+  },
+  "homepage": "https://github.com/janrs-io/rent_manager#readme",
+  "dependencies": {
+    "bcrypt-ts": "^9.0.2",
+    "hono": "^4.13.14",
+    "jose": "^6.2.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261030.1",
+    "wrangler": "^4.156.0"
+  }
+}

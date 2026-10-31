@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>租房管理 · 房间管理</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="brand-title">租房管理</span>
+      </div>
+      <ul class="sidebar-menu">
+        <li><a href="/dashboard.html"><span class="menu-icon">📊</span> 年度看板</a></li>
+        <li><a href="/rooms.html" class="active"><span class="menu-icon">🏠</span> 房间管理</a></li>
+        <li><a href="/tenants.html"><span class="menu-icon">👥</span> 租客档案</a></li>
+        <li><a href="/rent-records.html"><span class="menu-icon">💳</span> 收租账单</a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="btn-sidebar-logout" onclick="logout()">
+          <span>✕</span> 退出登录
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="topbar-title">物理房间资产</span>
+          <span class="topbar-badge" id="roomSummaryBadge">共 0 间房间</span>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-date" id="todayDate"></span>
+          <div class="user-menu" id="userMenu">
+            <div class="user-btn" onclick="toggleUserMenu()">
+              <div class="user-avatar" id="userAvatar">A</div>
+              <span class="user-name" id="topbarUser">admin</span>
+              <span class="user-arrow">▼</span>
+            </div>
+            <div class="user-dropdown">
+              <div class="user-dropdown-item" onclick="openChangePasswordModal()">
+                <span>🔑</span> 修改密码
+              </div>
+              <div class="user-dropdown-item danger" onclick="logout()">
+                <span>🚪</span> 退出登录
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="card">
+          <div class="card-header">
+            <div class="search-bar">
+              <input type="text" id="roomKeyword" placeholder="搜索房间号、住户姓名..." oninput="filterRooms()" style="width: 240px;" />
+              <select id="roomStatusFilter" onchange="filterRooms()">
+                <option value="all">全部房间</option>
+                <option value="occupied">仅在租房间</option>
+                <option value="vacant">仅空置房间</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-default btn-sm" onclick="openRecordModalForRoom(null)">+ 记账</button>
+              <button class="btn btn-primary btn-sm" onclick="openRoomModal()">+ 新增房间</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>房间号</th>
+                  <th>当前入住租客</th>
+                  <th>在租人数</th>
+                  <th>基准月租金</th>
+                  <th>房屋押金</th>
+                  <th>默认水电单价</th>
+                  <th>房间状态</th>
+                  <th>最近收租</th>
+                  <th style="text-align: right;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="roomBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 新增/编辑房间弹窗 -->
+  <div class="modal-mask" id="roomModalMask">
+    <div class="modal modal-medium">
+      <div class="modal-header">
+        <span id="roomModalTitle">新增房间</span>
+        <span class="modal-close" onclick="closeRoomModal()">✕</span>
+      </div>
+      <div class="modal-body">
+        <form id="roomForm">
+          <input type="hidden" id="roomId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>房间号 <span class="required">*</span></label>
+              <input type="text" id="room_no" placeholder="如 201, 302" required />
+            </div>
+            <div class="form-group">
+              <label>房间运营状态</label>
+              <select id="room_status">
+                <option value="occupied">在租 (Occupied)</option>
+                <option value="vacant">空置待租 (Vacant)</option>
+                <option value="maintenance">维修中 (Maintenance)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>基准月租金(元) <span class="required">*</span></label>
+              <input type="number" id="base_rent" min="0" step="0.01" placeholder="400" required />
+            </div>
+            <div class="form-group">
+              <label>基准房屋押金(元)</label>
+              <input type="number" id="base_deposit" min="0" step="0.01" value="0" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>默认电价 (元/度)</label>
+              <input type="number" id="electric_price" min="0" step="0.01" value="1.0" />
+            </div>
+            <div class="form-group">
+              <label>默认水价 (元/吨)</label>
+              <input type="number" id="water_price" min="0" step="0.01" value="4.5" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>房间备注说明</label>
+            <input type="text" id="room_note" placeholder="如 带独立阳台 / 包含空调热水器等" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default btn-sm" onclick="closeRoomModal()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="submitRoomForm()">保存房间信息</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 为房间办理新入住弹窗 -->
+  <div class="modal-mask" id="checkinModalMask">
+    <div class="modal modal-medium">
+      <div class="modal-header">
+        <span>办理租客入住 · <span id="checkinRoomNo"></span> 房</span>
+        <span class="modal-close" onclick="closeCheckinModal()">✕</span>
+      </div>
+      <div class="modal-body">
+        <form id="checkinForm">
+          <input type="hidden" id="checkinRoomNoInput" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>租客姓名 <span class="required">*</span></label>
+              <input type="text" id="checkinName" placeholder="租客真实姓名" required />
+            </div>
+            <div class="form-group">
+              <label>性别</label>
+              <select id="checkinGender">
+                <option value="male">男</option>
+                <option value="female">女</option>
+                <option value="unknown">未知</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>联系电话</label>
+              <input type="text" id="checkinPhone" placeholder="手机号码" />
+            </div>
+            <div class="form-group">
+              <label>身份证号</label>
+              <input type="text" id="checkinIdCard" maxlength="18" placeholder="18位身份证号" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>籍贯 / 详细地址</label>
+            <input type="text" id="checkinAddress" placeholder="详细地址" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>起租入住日期 <span class="required">*</span></label>
+              <input type="date" id="checkinMoveInDate" required />
+            </div>
+            <div class="form-group">
+              <label>承租角色身份</label>
+              <select id="checkinIsPrimary">
+                <option value="1">主承租人 (代表交租)</option>
+                <option value="0">合租同住人</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>月租金(元) <span class="required">*</span></label>
+              <input type="number" id="checkinRent" min="0" step="0.01" required />
+            </div>
+            <div class="form-group">
+              <label>房屋押金(元)</label>
+              <input type="number" id="checkinDeposit" min="0" step="0.01" value="0" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default btn-sm" onclick="closeCheckinModal()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="submitCheckinForm()">确认办理入住</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 收租记账弹窗 (就地直接记账，不发生页面跳转) -->
+  <div class="modal-mask" id="recordModalMask">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <div>
+          <span id="recordModalTitle">办理收租记账</span>
+          <div class="modal-subtitle">录入月度租金及水电抄表数据，保存后即刻更新房间状态与抄表读数</div>
+        </div>
+        <span class="modal-close" onclick="closeRecordModal()">✕</span>
+      </div>
+      <div class="modal-body">
+        <form id="recordForm">
+          <div class="modal-grid-2col">
+            <!-- 左侧列：基础租约与账期信息 -->
+            <div class="form-panel-left">
+              <div class="section-label-bar">
+                <span>📋</span> 房间与租金周期
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label>对应房间 <span class="required">*</span></label>
+                  <select id="rr_room_id" required onchange="onRecordRoomChange()"></select>
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label>收租付款日 <span class="required">*</span></label>
+                  <input type="date" id="rr_paid_at" required onchange="setRecordRenewDate()" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label>月度租金 (元) <span class="required">*</span></label>
+                  <input type="number" id="rr_amount" min="0" step="0.01" required oninput="updateRecordTotal()" />
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label>支付方式</label>
+                  <select id="rr_pay_method">
+                    <option value="wechat">微信支付</option>
+                    <option value="alipay">支付宝</option>
+                    <option value="cash">现金支付</option>
+                    <option value="bank">银行卡转账</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label>计费租期起始</label>
+                  <input type="date" id="rr_period_start" />
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label>计费租期截止</label>
+                  <input type="date" id="rr_period_end" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label>下次到期续租日</label>
+                  <input type="date" id="rr_renew_date" />
+                </div>
+                <div class="form-group" style="margin-bottom: 10px;">
+                  <label>收款状态</label>
+                  <select id="rr_is_collected">
+                    <option value="1">已实收 (已付款)</option>
+                    <option value="0">未交租 (待收款)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>账单备注说明</label>
+                <input type="text" id="rr_note" placeholder="如 微信转账单号 / 押金条备注等" />
+              </div>
+            </div>
+
+            <!-- 右侧列：水电抄表与杂费结算 -->
+            <div class="form-panel-right">
+              <div class="section-label-bar">
+                <span>⚡</span> 水电抄表与附加项
+              </div>
+
+              <!-- 电费抄表卡片 -->
+              <div class="meter-card">
+                <div class="meter-card-header">
+                  <div class="meter-card-title">
+                    <span>⚡</span> 电费抄表核算
+                  </div>
+                  <div class="meter-unit-price">
+                    单价: <input type="number" id="rr_electric_price" min="0" step="0.01" value="1.0" oninput="calcRecordElectric()" /> 元/度
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group" style="margin-bottom: 8px;">
+                    <label>上次读数 (起度) <span class="meter-origin-tag" id="rr_electric_origin_tag"></span></label>
+                    <input type="number" id="rr_electric_start" min="0" step="0.01" value="0" oninput="calcRecordElectric()" />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 8px;">
+                    <label>本次抄表 (止度) <span class="required">*</span></label>
+                    <input type="number" id="rr_electric_end" min="0" step="0.01" value="0" oninput="calcRecordElectric()" />
+                  </div>
+                </div>
+                <div class="meter-calc-bar">
+                  <span class="calc-label">用电结算小计</span>
+                  <span class="calc-value" id="rr_electric_badge">0.00 度 · ¥0.00</span>
+                </div>
+              </div>
+
+              <!-- 水费抄表卡片 -->
+              <div class="meter-card">
+                <div class="meter-card-header">
+                  <div class="meter-card-title">
+                    <span>💧</span> 水费抄表核算
+                  </div>
+                  <div class="meter-unit-price">
+                    单价: <input type="number" id="rr_water_price" min="0" step="0.01" value="4.5" oninput="calcRecordWater()" /> 元/吨
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group" style="margin-bottom: 8px;">
+                    <label>上次读数 (起度) <span class="meter-origin-tag" id="rr_water_origin_tag"></span></label>
+                    <input type="number" id="rr_water_start" min="0" step="0.01" value="0" oninput="calcRecordWater()" />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 8px;">
+                    <label>本次抄表 (止度) <span class="required">*</span></label>
+                    <input type="number" id="rr_water_end" min="0" step="0.01" value="0" oninput="calcRecordWater()" />
+                  </div>
+                </div>
+                <div class="meter-calc-bar">
+                  <span class="calc-label">用水结算小计</span>
+                  <span class="calc-value" id="rr_water_badge">0.00 吨 · ¥0.00</span>
+                </div>
+              </div>
+
+              <!-- 附加费用卡片 -->
+              <div class="addon-card">
+                <div class="form-row">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label>宽带网络费 (元)</label>
+                    <input type="number" id="rr_broadband_fee" min="0" step="0.01" value="0" oninput="updateRecordTotal()" />
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label>电动车充电费 (元)</label>
+                    <input type="number" id="rr_ev_charge_fee" min="0" step="0.01" value="0" oninput="updateRecordTotal()" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 底部明细拆解与应收合计条 -->
+          <div class="bill-summary-bar">
+            <div class="summary-breakdown">
+              <div class="summary-item">租金 <span id="rr_summaryRent">¥0.00</span></div>
+              <div class="summary-plus">+</div>
+              <div class="summary-item">电费 <span id="rr_summaryElec">¥0.00</span></div>
+              <div class="summary-plus">+</div>
+              <div class="summary-item">水费 <span id="rr_summaryWater">¥0.00</span></div>
+              <div class="summary-plus">+</div>
+              <div class="summary-item">附加费 <span id="rr_summaryAddon">¥0.00</span></div>
+            </div>
+            <div class="summary-total-box">
+              <span class="summary-total-label">本期应收总额</span>
+              <span class="summary-total-num" id="rr_totalPreview">¥0.00</span>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default btn-sm" onclick="closeRecordModal()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="submitRecordForm()">保存入账</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/rooms.js"></script>
+</body>
+</html>

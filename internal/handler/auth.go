@@ -96,6 +96,20 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	h.db.Exec(`UPDATE admins SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, newHashed, adminID)
+	res, err := h.db.Exec(`UPDATE admins SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, newHashed, adminID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码更新失败"})
+		return
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "密码更新结果确认失败"})
+		return
+	}
+	if affected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "管理员不存在"})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }

@@ -16,28 +16,35 @@ func (h *Handler) Dashboard(c *gin.Context) {
 
 	// 年度汇总
 	var totalRent, totalElectricFee, totalWaterFee, totalElectricUsage, totalWaterUsage float64
-	h.db.QueryRow(`
+	if err := h.db.QueryRow(`
 		SELECT
 			COALESCE(SUM(amount), 0),
-			COALESCE(SUM((electric_end - electric_start) * electric_price), 0),
-			COALESCE(SUM((water_end - water_start) * water_price), 0),
-			COALESCE(SUM(electric_end - electric_start), 0),
-			COALESCE(SUM(water_end - water_start), 0)
-		FROM rent_records
-		WHERE strftime('%Y', paid_at) = ?
-	`, year).Scan(&totalRent, &totalElectricFee, &totalWaterFee, &totalElectricUsage, &totalWaterUsage)
+			COALESCE(SUM(MAX(r.electric_end - r.electric_start, 0) * r.electric_price), 0),
+			COALESCE(SUM(MAX(r.water_end - r.water_start, 0) * r.water_price), 0),
+			COALESCE(SUM(MAX(r.electric_end - r.electric_start, 0)), 0),
+			COALESCE(SUM(MAX(r.water_end - r.water_start, 0)), 0)
+		FROM rent_records r
+		WHERE strftime('%Y', r.paid_at) = ?
+		  AND r.is_collected = 1
+		  AND COALESCE(NULLIF(r.room_no, ''), '') <> ''
+	`, year).Scan(&totalRent, &totalElectricFee, &totalWaterFee, &totalElectricUsage, &totalWaterUsage); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	// 按月明细
 	rows, err := h.db.Query(`
 		SELECT
-			strftime('%m', paid_at) as month,
-			COALESCE(SUM(amount), 0),
-			COALESCE(SUM((electric_end - electric_start) * electric_price), 0),
-			COALESCE(SUM((water_end - water_start) * water_price), 0),
-			COALESCE(SUM(electric_end - electric_start), 0),
-			COALESCE(SUM(water_end - water_start), 0)
-		FROM rent_records
-		WHERE strftime('%Y', paid_at) = ?
+			strftime('%m', r.paid_at) as month,
+			COALESCE(SUM(r.amount), 0),
+			COALESCE(SUM(MAX(r.electric_end - r.electric_start, 0) * r.electric_price), 0),
+			COALESCE(SUM(MAX(r.water_end - r.water_start, 0) * r.water_price), 0),
+			COALESCE(SUM(MAX(r.electric_end - r.electric_start, 0)), 0),
+			COALESCE(SUM(MAX(r.water_end - r.water_start, 0)), 0)
+		FROM rent_records r
+		WHERE strftime('%Y', r.paid_at) = ?
+		  AND r.is_collected = 1
+		  AND COALESCE(NULLIF(r.room_no, ''), '') <> ''
 		GROUP BY month
 		ORDER BY month ASC
 	`, year)
@@ -64,7 +71,8 @@ func (h *Handler) Dashboard(c *gin.Context) {
 		var month string
 		var rent, electricFee, waterFee, electricUsage, waterUsage float64
 		if err := rows.Scan(&month, &rent, &electricFee, &waterFee, &electricUsage, &waterUsage); err != nil {
-			continue
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 		idx := 0
 		fmt.Sscanf(month, "%d", &idx)
@@ -78,6 +86,10 @@ func (h *Handler) Dashboard(c *gin.Context) {
 				"water_usage":    waterUsage,
 			}
 		}
+	}
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{

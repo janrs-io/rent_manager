@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#18181b"/>
+  <!-- Modern clean minimalist house shape -->
+  <path d="M32 14L14 28.5L16.5 30.5L18 29.3V50H46V29.3L47.5 30.5L50 28.5L32 14Z" fill="#ffffff"/>
+  <!-- Doorway cutout -->
+  <path d="M28 36H36V50H28V36Z" fill="#18181b" rx="2"/>
+  <!-- Upper window cutout -->
+  <rect x="29" y="24" width="6" height="6" rx="1.5" fill="#18181b"/>
+</svg>

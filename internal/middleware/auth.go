@@ -18,6 +18,9 @@ func JWTAuth(secret []byte) gin.HandlerFunc {
 
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+			if t.Method != jwt.SigningMethodHS256 {
+				return nil, jwt.ErrTokenUnverifiable
+			}
 			return secret, nil
 		})
 		if err != nil || !token.Valid {
@@ -25,9 +28,24 @@ func JWTAuth(secret []byte) gin.HandlerFunc {
 			return
 		}
 
-		claims := token.Claims.(jwt.MapClaims)
-		c.Set("admin_id", int64(claims["admin_id"].(float64)))
-		c.Set("username", claims["username"].(string))
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token 无效或已过期"})
+			return
+		}
+		adminID, ok := claims["admin_id"].(float64)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token 无效或已过期"})
+			return
+		}
+		username, ok := claims["username"].(string)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Token 无效或已过期"})
+			return
+		}
+
+		c.Set("admin_id", int64(adminID))
+		c.Set("username", username)
 		c.Next()
 	}
 }

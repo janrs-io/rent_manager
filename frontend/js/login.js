@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // 已登录则跳转到首页
+  // 已登录则直接跳转首页
   if (localStorage.getItem('token')) {
     window.location.href = '/dashboard.html';
     return;
@@ -11,9 +11,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
+    errorMsg.style.display = 'none';
     errorMsg.textContent = '';
     submitBtn.disabled = true;
-    submitBtn.textContent = '登录中...';
+    submitBtn.textContent = '验证中...';
 
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
@@ -28,7 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const data = await res.json();
 
       if (!res.ok) {
-        errorMsg.textContent = data.error || '登录失败';
+        errorMsg.textContent = data.error || '登录失败，请检查账号密码';
+        errorMsg.style.display = 'block';
         return;
       }
 
@@ -36,10 +38,11 @@ document.addEventListener('DOMContentLoaded', function () {
       localStorage.setItem('username', data.username);
       window.location.href = '/dashboard.html';
     } catch (err) {
-      errorMsg.textContent = '网络错误，请重试';
+      errorMsg.textContent = '无法连接到服务器，请检查网络';
+      errorMsg.style.display = 'block';
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = '登录';
+      submitBtn.textContent = '登录系统';
     }
   });
 });

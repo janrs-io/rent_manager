@@ -1,0 +1,9 @@
+name = "rent-manager"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./frontend"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rent-manager-db"
+database_id = "ab6caf9c-f96a-475e-aaef-d6e5e7ffce9c"
